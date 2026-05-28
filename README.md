@@ -435,7 +435,7 @@ Before publishing on GitHub:
 - Follow `docs/release.md`.
 - Optionally record a short screencast or GIF of the topic interruption demo.
 - Decide whether examples should be English-only, Chinese-only, or bilingual.
-- Add a version tag such as `v0.1.0`.
+- Add a version tag such as `v0.2.0`.
 
 ## Development
 
@@ -478,4 +478,4 @@ MIT License. See `LICENSE`.
 
 ## Status
 
-Prototype v0.1. The current version is suitable for early local testing and design iteration.
+Prototype v0.2. The current version is suitable for early local testing of adaptive integration, session health, and handoff workflows.

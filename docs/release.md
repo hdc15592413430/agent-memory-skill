@@ -36,7 +36,7 @@ Use this before publishing the project on GitHub or tagging a release.
   - `python -m agent_memory.adapters.agent handoff --path examples/agent-run-demo --json`
   - `python -m agent_memory.adapters.multi_agent handoff --path examples/multi-agent-demo --json`
 - Replace any future placeholder repository URLs in package metadata before publishing to a package index.
-- Tag the release, for example `v0.1.0`.
+- Tag the release, for example `v0.2.0`.
 
 ## Optional
 

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agent-memory-skill"
-version = "0.1.0"
+version = "0.2.0"
 description = "Structured working memory for AI agents, topic interruptions, and model handoffs."
 readme = "README.md"
 requires-python = ">=3.10"
