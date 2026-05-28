@@ -7,9 +7,11 @@
 
 AI agents forget what matters.
 
-Agent Memory Skill gives agents a portable memory layer: curated context, user preferences, topic stack, handoff packets, candidate memory review, and model/runtime migration without transcript dumps.
+Agent Memory Skill gives agents a project-level continuity layer: curated context, user preferences, topic stack, handoff packets, candidate memory review, and model/runtime migration without transcript dumps.
 
 It works as a Codex skill, a Python CLI, a JSON memory schema, and a small set of adapters for Codex-style workspaces, ordinary AI chat, autonomous agent runs, and multi-agent workflows.
+
+The current version is best used as a local sidecar for long-running projects, model handoffs, and existing-agent migrations. It is not meant to replace every memory system globally or store raw transcripts.
 
 ## Why This Exists
 
@@ -40,6 +42,8 @@ This project treats memory as curated operating state:
 - Short startup briefings plus full migration packets for model or runtime handoff.
 - Candidate memory flow: `propose` first, `promote` only after review.
 - Topic stack support for side ideas, parked threads, and safe resume cues.
+- Existing-agent sidecar guidance so current memory is not overwritten by default.
+- Atomic local writes plus `state.json` revision checks in the reference filesystem backend.
 - Adapters for Codex, chat assistants, autonomous agent runs, and multi-agent memory.
 - Deterministic behavior scenarios and release validation for open-source iteration.
 
@@ -50,6 +54,18 @@ Install locally for development:
 ```bash
 python -m pip install -e .
 ```
+
+Recommended project path:
+
+```bash
+python -m agent_memory init --path .agent-memory
+python -m agent_memory brief --path .agent-memory
+python -m agent_memory propose --path .agent-memory --collection preferences --id pref-candidate --text "User may prefer short progress updates." --scope user
+python -m agent_memory select --path .agent-memory --status candidate --include-candidates
+python -m agent_memory handoff --path .agent-memory
+```
+
+For an existing agent, start in sidecar mode: create `.agent-memory/`, import uncertain old memory as candidates, and do not overwrite existing memory or agent configuration. See `docs/existing-agent-integration.md`.
 
 Run the demo:
 
@@ -295,6 +311,7 @@ docs/
   demo-multi-agent.md
   codex-adapter.md
   evaluation.md
+  existing-agent-integration.md
   json-schema.md
   memory-candidates.md
   memory-compaction.md
@@ -329,6 +346,8 @@ See `docs/research-pain-points.md` for the broader public pain-point scan that i
 See `ROADMAP.md` for planned adapter hardening, expanded retrieval, compaction policy work, and runtime integration work.
 
 See `docs/architecture.md` for the skill/core/adapter split.
+
+See `docs/existing-agent-integration.md` for adding Agent Memory to an agent that already has memory without overwriting its current system.
 
 See `docs/adapter-contract.md` for the required behavior of new runtime adapters.
 

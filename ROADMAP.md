@@ -19,6 +19,8 @@ Goals:
 - Provide candidate review flow so agent guesses do not enter startup context until promoted.
 - Provide supersession flow for replacing old preferences, facts, and decisions without conflicting active memory.
 - Provide reviewable compaction planning that can mark low-signal or expired records stale without deleting audit history.
+- Provide sidecar integration guidance for existing agents so current memory is not overwritten by default.
+- Provide local atomic writes and revision checks for the reference filesystem backend.
 - Provide release validation, behavior scenario evaluation, security guidance, and public contribution templates.
 
 ## V0.2: Adapter Hardening
@@ -29,6 +31,7 @@ Goals:
 - Add adapter fixtures that prove each runtime can initialize memory, load startup context, write a checkpoint, handle topic interruption, redact sensitive memory, and prepare handoff.
 - Add explicit consent hooks for durable writes in chat and user-profile memory flows.
 - Add conflict examples for concurrent multi-agent writes.
+- Expand conflict handling beyond stale-write detection into adapter-specific merge or review workflows.
 - Harden import/export helpers for moving memory between compatible runtimes, including adapter-specific consent and storage policies.
 
 ## V0.3: Retrieval And Compaction

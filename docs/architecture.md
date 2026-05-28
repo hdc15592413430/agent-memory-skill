@@ -36,6 +36,7 @@ This is the reusable Python package. It owns:
 - migration packet rendering
 - targeted selection and conservative compaction planning
 - handoff readiness CLI workflow
+- atomic local file writes and `state.json` revision checks for the reference filesystem backend
 - the CLI used by demos and adapters
 
 The core should not know about Codex, chat products, or a specific agent runtime.

@@ -21,6 +21,7 @@ Every adapter must be able to:
 - redact sensitive records and refresh generated artifacts
 - forget revoked records and refresh generated artifacts
 - export and import portable bundles for runtime migration when the adapter supports filesystem or equivalent artifact storage
+- preserve local write safety: do not overwrite existing agent memory by default, use candidate imports for uncertain legacy memory, and keep rollback notes for integration changes
 
 Adapters may add runtime-specific notes, UI, storage, or prompts, but they should not redefine the core memory model.
 
@@ -53,6 +54,18 @@ Adapters should write memory at natural boundaries:
 - explicit user correction that requires supersession
 
 Adapters should not write every message. A record should pass the salience gate before becoming durable memory; uncertain agent guesses should use `propose` and remain candidates until promoted.
+
+Adapters that write local files should use the core write helpers so state and generated artifacts are written atomically. If an adapter bypasses the core helpers, it must provide an equivalent write strategy and document how stale writes or concurrent writers are handled.
+
+## Existing Agent Integration
+
+When adding Agent Memory to an existing agent, adapters should start in sidecar mode:
+
+- create or use a project-local `.agent-memory/`
+- leave existing memory files and runtime configuration untouched
+- import uncertain legacy memory as `candidate`
+- record what was imported, skipped, redacted, promoted, or left in place
+- provide a rollback path that does not delete the user's original memory files
 
 ## Privacy And Consent
 

@@ -12,6 +12,7 @@ from .core import (
     BUNDLE_FILE,
     COLLECTIONS,
     KNOWN_STATUSES,
+    MemoryWriteConflict,
     KNOWN_SCOPES,
     KNOWN_SOURCES,
     PACKET_FILE,
@@ -50,6 +51,7 @@ from .core import (
     write_briefing,
     write_packet,
     write_state,
+    write_text_atomic,
 )
 
 
@@ -63,24 +65,35 @@ def print_errors(errors: list[str]) -> None:
         print(f"ERROR: {error}")
 
 
-def save_valid_state(memory_dir: Path, state: dict, *, render: bool = False) -> int:
+def write_error(exc: Exception) -> int:
+    print(f"ERROR: {exc}")
+    return 1
+
+
+def save_valid_state(memory_dir: Path, state: dict, *, render: bool = False, check_revision: bool = True) -> int:
     errors = validate_state(state)
     if errors:
         print_errors(errors)
         return 1
-    write_state(memory_dir, state)
-    maybe_render(memory_dir, state, render)
+    try:
+        write_state(memory_dir, state, check_revision=check_revision)
+        maybe_render(memory_dir, state, render)
+    except (MemoryWriteConflict, TimeoutError, OSError) as exc:
+        return write_error(exc)
     return 0
 
 
-def save_state_and_handoff_artifacts(memory_dir: Path, state: dict) -> int:
+def save_state_and_handoff_artifacts(memory_dir: Path, state: dict, *, check_revision: bool = True) -> int:
     errors = validate_state(state)
     if errors:
         print_errors(errors)
         return 1
-    write_state(memory_dir, state)
-    write_briefing(memory_dir, state)
-    write_packet(memory_dir, state)
+    try:
+        write_state(memory_dir, state, check_revision=check_revision)
+        write_briefing(memory_dir, state)
+        write_packet(memory_dir, state)
+    except (MemoryWriteConflict, TimeoutError, OSError) as exc:
+        return write_error(exc)
     return 0
 
 
@@ -91,8 +104,11 @@ def command_init(args: argparse.Namespace) -> int:
         print(f"Already exists: {state_path}")
         return 0
     state = default_state()
-    write_state(memory_dir, state)
-    write_packet(memory_dir, state)
+    try:
+        write_state(memory_dir, state, check_revision=False)
+        write_packet(memory_dir, state)
+    except (MemoryWriteConflict, TimeoutError, OSError) as exc:
+        return write_error(exc)
     print(f"Initialized memory state at {state_path}")
     print(f"Rendered migration packet at {memory_dir / PACKET_FILE}")
     return 0
@@ -116,9 +132,12 @@ def command_render(args: argparse.Namespace) -> int:
     if errors:
         print_errors(errors)
         return 1
-    packet = render_packet(state)
-    output_path = Path(args.output) if args.output else memory_dir / PACKET_FILE
-    output_path.write_text(packet, encoding="utf-8", newline="\n")
+    if args.output:
+        output_path = Path(args.output)
+        write_text_atomic(output_path, render_packet(state))
+    else:
+        output_path = memory_dir / PACKET_FILE
+        write_packet(memory_dir, state)
     print(f"Rendered migration packet at {output_path}")
     return 0
 
@@ -147,7 +166,7 @@ def command_brief(args: argparse.Namespace) -> int:
         print(f"Rendered memory briefing at {memory_dir / BRIEFING_FILE}")
     elif args.output:
         output_path = Path(args.output)
-        output_path.write_text(briefing, encoding="utf-8", newline="\n")
+        write_text_atomic(output_path, briefing)
         print(f"Rendered memory briefing at {output_path}")
     else:
         print(briefing)
@@ -197,7 +216,7 @@ def command_schema(args: argparse.Namespace) -> int:
     schema_text = json.dumps(state_schema(), ensure_ascii=False, indent=2)
     if args.output:
         output_path = Path(args.output)
-        output_path.write_text(schema_text + "\n", encoding="utf-8", newline="\n")
+        write_text_atomic(output_path, schema_text + "\n")
         print(f"Wrote schema: {output_path}")
     else:
         print(schema_text)
@@ -236,8 +255,7 @@ def command_export(args: argparse.Namespace) -> int:
             print_issues(issues)
         return 1
     output_path = Path(args.output) if args.output else memory_dir / BUNDLE_FILE
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(json.dumps(bundle, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
+    write_text_atomic(output_path, json.dumps(bundle, ensure_ascii=False, indent=2) + "\n")
     print(f"Exported memory bundle at {output_path}")
     return 0
 
@@ -254,7 +272,7 @@ def command_import(args: argparse.Namespace) -> int:
     except (OSError, json.JSONDecodeError, ValueError) as exc:
         print(f"ERROR: {exc}")
         return 1
-    result = save_state_and_handoff_artifacts(memory_dir, state)
+    result = save_state_and_handoff_artifacts(memory_dir, state, check_revision=False)
     if result != 0:
         return result
     print(f"Imported memory bundle into {memory_dir}")

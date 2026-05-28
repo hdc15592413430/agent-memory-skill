@@ -117,7 +117,7 @@ def write_note(memory_dir: Path, state: dict[str, Any] | None = None) -> Path:
         state = core.load_state(memory_dir)
     note = build_note_from_state(memory_dir, state)
     output_path = memory_dir / NOTE_FILE
-    output_path.write_text(note, encoding="utf-8", newline="\n")
+    core.write_text_atomic(output_path, note)
     return output_path
 
 

@@ -24,6 +24,44 @@ class MemoryPacketTests(unittest.TestCase):
         state = core.default_state()
         self.assertEqual([], core.validate_state(state))
 
+    def test_write_state_is_atomic_and_tracks_revision(self):
+        with tempfile.TemporaryDirectory() as temp:
+            memory_dir = Path(temp) / "memory"
+            state = core.default_state()
+
+            core.write_state(memory_dir, state)
+
+            self.assertEqual(state["revision"], 1)
+            written = core.load_state(memory_dir)
+            self.assertEqual(written["revision"], 1)
+            self.assertFalse(list(memory_dir.glob(".tmp-*")))
+            self.assertFalse((memory_dir / core.LOCK_FILE).exists())
+
+            state["migration"]["summary"] = "Second write."
+            core.write_state(memory_dir, state)
+
+            self.assertEqual(state["revision"], 2)
+            self.assertEqual(core.load_state(memory_dir)["migration"]["summary"], "Second write.")
+
+    def test_write_state_rejects_stale_revision(self):
+        with tempfile.TemporaryDirectory() as temp:
+            memory_dir = Path(temp) / "memory"
+            state = core.default_state()
+            core.write_state(memory_dir, state)
+
+            stale = core.load_state(memory_dir)
+            current = core.load_state(memory_dir)
+            current["migration"]["summary"] = "Current update wins."
+            core.write_state(memory_dir, current)
+
+            stale["migration"]["summary"] = "Stale update should not overwrite."
+            with self.assertRaises(core.MemoryWriteConflict):
+                core.write_state(memory_dir, stale)
+
+            written = core.load_state(memory_dir)
+            self.assertEqual(written["revision"], 2)
+            self.assertEqual(written["migration"]["summary"], "Current update wins.")
+
     def test_state_schema_file_matches_python_export(self):
         schema_path = ROOT / "schemas" / "state.schema.json"
         file_schema = json.loads(schema_path.read_text(encoding="utf-8"))

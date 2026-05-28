@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 import json
+import os
+import time
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -15,6 +18,8 @@ BUNDLE_FILE = "agent-memory-export.json"
 PLAN_DIR = "plans"
 BUNDLE_FORMAT = "agent-memory-bundle"
 BUNDLE_VERSION = 1
+LOCK_FILE = ".agent-memory.lock"
+WRITE_LOCK_TIMEOUT_SECONDS = 5.0
 
 COLLECTIONS = {
     "preferences": ("user_profile", "preferences", "preference"),
@@ -92,6 +97,10 @@ CLOSURE_CUES = (
 AMBIGUOUS_CONTINUE_CUES = ("continue", "go on", "\u63a5\u7740", "\u7ee7\u7eed")
 
 
+class MemoryWriteConflict(RuntimeError):
+    """Raised when state.json changed after it was loaded."""
+
+
 def now_iso() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
@@ -114,10 +123,62 @@ def contains_any(text: str, phrases: tuple[str, ...]) -> str | None:
     return None
 
 
+def state_revision(state: dict[str, Any]) -> int:
+    value = state.get("revision", 0)
+    if isinstance(value, bool):
+        return 0
+    if isinstance(value, int) and value >= 0:
+        return value
+    return 0
+
+
+@contextmanager
+def memory_write_lock(memory_dir: Path, *, timeout: float = WRITE_LOCK_TIMEOUT_SECONDS):
+    memory_dir.mkdir(parents=True, exist_ok=True)
+    lock_path = memory_dir / LOCK_FILE
+    deadline = time.monotonic() + timeout
+    while True:
+        try:
+            descriptor = os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        except FileExistsError:
+            if time.monotonic() >= deadline:
+                raise TimeoutError(f"timed out waiting for memory write lock: {lock_path}")
+            time.sleep(0.05)
+            continue
+        with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as handle:
+            handle.write(f"pid={os.getpid()}\ncreated_at={now_iso()}\n")
+        break
+
+    try:
+        yield
+    finally:
+        try:
+            lock_path.unlink()
+        except FileNotFoundError:
+            pass
+
+
+def write_text_atomic(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temp_path = path.with_name(f".tmp-{path.name}-{os.getpid()}-{time.time_ns()}")
+    try:
+        with temp_path.open("w", encoding="utf-8", newline="\n") as handle:
+            handle.write(text)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temp_path, path)
+    finally:
+        try:
+            temp_path.unlink()
+        except FileNotFoundError:
+            pass
+
+
 def default_state() -> dict[str, Any]:
     timestamp = now_iso()
     return {
         "version": 1,
+        "revision": 0,
         "updated_at": timestamp,
         "user_profile": {
             "preferences": [],
@@ -153,17 +214,28 @@ def load_state(memory_dir: Path) -> dict[str, Any]:
         return json.load(handle)
 
 
-def write_state(memory_dir: Path, state: dict[str, Any]) -> None:
+def write_state(memory_dir: Path, state: dict[str, Any], *, check_revision: bool = True) -> None:
     memory_dir.mkdir(parents=True, exist_ok=True)
-    state["updated_at"] = now_iso()
     state_path = memory_dir / STATE_FILE
-    with state_path.open("w", encoding="utf-8", newline="\n") as handle:
-        json.dump(state, handle, ensure_ascii=False, indent=2)
-        handle.write("\n")
+    with memory_write_lock(memory_dir):
+        expected_revision = state_revision(state)
+        current_revision = None
+        if state_path.exists():
+            current_revision = state_revision(load_state(memory_dir))
+            if check_revision and current_revision != expected_revision:
+                raise MemoryWriteConflict(
+                    f"{state_path} changed from revision {expected_revision} "
+                    f"to {current_revision}; reload before writing"
+                )
+        base_revision = current_revision if current_revision is not None else expected_revision
+        state["revision"] = base_revision + 1
+        state["updated_at"] = now_iso()
+        write_text_atomic(state_path, json.dumps(state, ensure_ascii=False, indent=2) + "\n")
 
 
 def write_packet(memory_dir: Path, state: dict[str, Any]) -> None:
-    (memory_dir / PACKET_FILE).write_text(render_packet(state), encoding="utf-8", newline="\n")
+    with memory_write_lock(memory_dir):
+        write_text_atomic(memory_dir / PACKET_FILE, render_packet(state))
 
 
 def write_briefing(
@@ -180,7 +252,8 @@ def write_briefing(
         include_stale=include_stale,
         include_untrusted=include_untrusted,
     )
-    (memory_dir / BRIEFING_FILE).write_text(briefing, encoding="utf-8", newline="\n")
+    with memory_write_lock(memory_dir):
+        write_text_atomic(memory_dir / BRIEFING_FILE, briefing)
 
 
 def clone_json(value: Any) -> Any:
@@ -670,7 +743,8 @@ def capture_plan_artifact(
     plan_dir.mkdir(parents=True, exist_ok=True)
     relative_path = f"{PLAN_DIR}/{safe_plan_filename(plan_id)}.md"
     plan_path = memory_dir / relative_path
-    plan_path.write_text(render_plan_artifact(title, body), encoding="utf-8", newline="\n")
+    with memory_write_lock(memory_dir):
+        write_text_atomic(plan_path, render_plan_artifact(title, body))
 
     plan_tags = merge_unique(["plan", "opening-plan"], tags or [])
     evidence_text = evidence or f"Captured plan artifact at {relative_path}."
@@ -941,6 +1015,9 @@ def validate_state(state: dict[str, Any]) -> list[str]:
     for key in required:
         if key not in state:
             errors.append(f"missing top-level key: {key}")
+    revision = state.get("revision")
+    if revision is not None and (isinstance(revision, bool) or not isinstance(revision, int) or revision < 0):
+        errors.append("revision must be a non-negative integer")
 
     user_profile = state.get("user_profile", {})
     if isinstance(user_profile, dict):

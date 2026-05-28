@@ -50,6 +50,7 @@ STATE_SCHEMA: dict[str, Any] = {
     ],
     "properties": {
         "version": {"type": "integer", "minimum": 1},
+        "revision": {"type": "integer", "minimum": 0},
         "updated_at": {"type": "string"},
         "user_profile": {
             "type": "object",

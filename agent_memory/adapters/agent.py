@@ -110,7 +110,7 @@ def write_run_note(memory_dir: Path, state: dict[str, Any] | None = None) -> Pat
     if state is None:
         state = core.load_state(memory_dir)
     output_path = memory_dir / RUN_NOTE_FILE
-    output_path.write_text(build_run_note_from_state(state), encoding="utf-8", newline="\n")
+    core.write_text_atomic(output_path, build_run_note_from_state(state))
     return output_path
 
 

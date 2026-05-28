@@ -29,6 +29,7 @@ Use the schema from another runtime to validate generated memory before handoff.
 The JSON Schema validates structure:
 
 - required top-level sections
+- optional top-level `revision` for stale-write detection
 - required record fields
 - legal confidence values
 - salience range

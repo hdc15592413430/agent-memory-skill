@@ -13,6 +13,7 @@ Agent memory is useful because it persists. That also makes mistakes more durabl
 - Use `python -m agent_memory propose --path <memory-dir>` for uncertain agent-inferred memory so it stays out of briefing until review.
 - Use `python -m agent_memory compact --path <memory-dir>` to review low-signal cleanup before applying it.
 - Treat `agent-memory-export.json` portable bundles as sensitive memory artifacts.
+- For existing agents, install Agent Memory as a sidecar first and do not overwrite current memory or configuration without explicit approval.
 
 ## Data To Avoid
 
@@ -120,6 +121,8 @@ Adapters must document:
 - how users can inspect, edit, export, or delete memory
 
 Shared adapters should not mix role-local findings into shared memory unless the record is a confirmed decision.
+
+For existing-agent migrations, document what was created, imported, promoted, redacted, skipped, or left untouched. The user should be able to inspect and roll back the integration without losing their original memory files.
 
 ## Publishing Examples
 

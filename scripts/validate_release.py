@@ -29,6 +29,7 @@ REQUIRED_ROOT_FILES = (
     "pyproject.toml",
     "MANIFEST.in",
     "docs/adapter-contract.md",
+    "docs/existing-agent-integration.md",
     "docs/privacy-and-safety.md",
     "docs/opening-plans.md",
     "docs/memory-candidates.md",
@@ -69,6 +70,7 @@ REQUIRED_README_STRINGS = (
     "SECURITY.md",
     "ROADMAP.md",
     "docs/adapter-contract.md",
+    "docs/existing-agent-integration.md",
     "docs/privacy-and-safety.md",
     "docs/opening-plans.md",
     "docs/memory-candidates.md",
@@ -116,12 +118,20 @@ REQUIRED_ADAPTER_CONTRACT_STRINGS = (
     "Read Path",
     "Write Path",
     "Privacy And Consent",
+    "Existing Agent Integration",
     "Test Requirements",
     "forgetting removes",
     "export/import roundtrips",
     "opening plan",
     "targeted selection excludes",
     "supersession",
+)
+REQUIRED_EXISTING_AGENT_STRINGS = (
+    "sidecar",
+    "Do not overwrite",
+    "candidate",
+    "Rollback",
+    "python -m agent_memory handoff",
 )
 REQUIRED_BUNDLE_STRINGS = (
     "agent-memory-bundle",
@@ -284,6 +294,11 @@ def check_project_direction_docs(failures: list[str]) -> None:
     for expected in REQUIRED_ADAPTER_CONTRACT_STRINGS:
         if expected not in contract_text:
             fail(f"docs/adapter-contract.md missing: {expected}", failures)
+
+    existing_agent_text = (ROOT / "docs" / "existing-agent-integration.md").read_text(encoding="utf-8")
+    for expected in REQUIRED_EXISTING_AGENT_STRINGS:
+        if expected not in existing_agent_text:
+            fail(f"docs/existing-agent-integration.md missing: {expected}", failures)
 
     feature_template = (ROOT / ".github" / "ISSUE_TEMPLATE" / "feature_request.md").read_text(encoding="utf-8")
     if "docs/adapter-contract.md" not in feature_template:

@@ -1,13 +1,13 @@
 ---
 name: agent-memory
-description: Capture, retrieve, update, and migrate AI agent working memory across long conversations, context compaction, model switches, architecture changes, task handoffs, and topic interruptions. Use when an AI agent, Codex session, chat assistant, or multi-agent workflow needs to preserve durable user preferences, project facts, decisions, side ideas, open threads, migration context, or continuity without treating the full transcript as memory.
+description: Maintain project-level AI agent memory for continuity-sensitive work: long-running tasks, context compaction, model switches, runtime handoff, existing-agent migration, topic interruptions, durable user preferences, project decisions, and reviewable memory updates. Use when the user asks to remember, resume, migrate, hand off, audit, or preserve agent context; avoid using it for short one-off tasks that do not need durable memory.
 ---
 
 # Agent Memory
 
 ## Purpose
 
-Use this skill to maintain structured working memory for an agent. Treat memory as curated operational context, not a transcript dump.
+Use this skill to maintain structured project-level working memory for an agent. Treat memory as curated operational context, not a transcript dump.
 
 This is a meta-skill: it improves how an agent works rather than handling one external file format or API. It should still produce concrete actions: read memory, capture memory, update the topic stack, render a briefing or migration packet, validate state, and resume prior threads.
 
@@ -99,39 +99,57 @@ For runtime or architecture migration, use `export` to create a portable JSON bu
 
 ## Recommended Files
 
-Use `.agent-memory/` by default unless the user or repo has an existing memory location.
+Use `.agent-memory/` by default unless the user or repo has an existing memory location. For an existing agent, treat `.agent-memory/` as a sidecar continuity layer first; do not replace `MEMORY.md`, daily notes, agent profiles, or runtime configuration unless the user explicitly asks.
 
 - `.agent-memory/state.json`: canonical structured memory state.
 - `.agent-memory/memory-briefing.md`: short startup context for a new model or agent.
 - `.agent-memory/migration-packet.md`: rendered handoff summary.
 - `.agent-memory/plans/`: captured opening or phase plans.
 
-Run:
+Start with the narrow path:
 
 ```bash
 python path/to/agent-memory/scripts/memory_packet.py init --path .agent-memory
 python path/to/agent-memory/scripts/memory_packet.py meta --path .agent-memory --objective "..." --summary "..."
+python path/to/agent-memory/scripts/memory_packet.py propose --path .agent-memory --collection preferences --id pref-candidate --text "..."
+python path/to/agent-memory/scripts/memory_packet.py promote --path .agent-memory --id pref-candidate
+python path/to/agent-memory/scripts/memory_packet.py brief --path .agent-memory --write
+python path/to/agent-memory/scripts/memory_packet.py handoff --path .agent-memory
+```
+
+Use advanced commands only when the task needs them:
+
+```bash
 python path/to/agent-memory/scripts/memory_packet.py add --path .agent-memory --collection decisions --id decision-001 --text "..." --evidence "..."
+python path/to/agent-memory/scripts/memory_packet.py plan --path .agent-memory --id plan-opening --title "Opening Implementation Plan" --body "Phase 1: ... Validation: ..."
 python path/to/agent-memory/scripts/memory_packet.py interrupt --path .agent-memory --episode-id episode-001 --episode-text "..." --thread-id thread-side-001 --thread-text "..."
 python path/to/agent-memory/scripts/memory_packet.py cue --path .agent-memory --text "back to the previous topic" --auto-resume
 python path/to/agent-memory/scripts/memory_packet.py resume --path .agent-memory --current-destination closed
 python path/to/agent-memory/scripts/memory_packet.py validate --path .agent-memory
 python path/to/agent-memory/scripts/memory_packet.py doctor --path .agent-memory
 python path/to/agent-memory/scripts/memory_packet.py review --path .agent-memory --id fact-001 --reviewed --trusted
-python path/to/agent-memory/scripts/memory_packet.py propose --path .agent-memory --collection preferences --id pref-candidate --text "..."
-python path/to/agent-memory/scripts/memory_packet.py promote --path .agent-memory --id pref-candidate
-python path/to/agent-memory/scripts/memory_packet.py plan --path .agent-memory --id plan-opening --title "Opening Implementation Plan" --body "Phase 1: ... Validation: ..."
 python path/to/agent-memory/scripts/memory_packet.py supersede --path .agent-memory --collection preferences --id pref-new --text "..." --evidence "..." --replaces pref-old
 python path/to/agent-memory/scripts/memory_packet.py redact --path .agent-memory --id fact-secret-001
 python path/to/agent-memory/scripts/memory_packet.py forget --path .agent-memory --id pref-temp-001
 python path/to/agent-memory/scripts/memory_packet.py export --path .agent-memory --output agent-memory-export.json --strict
 python path/to/agent-memory/scripts/memory_packet.py import --path .agent-memory-next --input agent-memory-export.json
-python path/to/agent-memory/scripts/memory_packet.py handoff --path .agent-memory
-python path/to/agent-memory/scripts/memory_packet.py brief --path .agent-memory --write
 python path/to/agent-memory/scripts/memory_packet.py render --path .agent-memory
 python path/to/agent-memory/scripts/memory_packet.py select --path .agent-memory --query "model migration" --min-salience 4
 python path/to/agent-memory/scripts/memory_packet.py compact --path .agent-memory
 ```
+
+## Existing Agent Integration
+
+When adding this skill to an agent that already has memory:
+
+1. Inspect current memory files and runtime configuration before writing.
+2. Keep `.agent-memory/` as an additive sidecar unless the user requests migration.
+3. Do not overwrite existing `MEMORY.md`, daily memory, agent profiles, prompts, auth files, startup scripts, or runtime settings.
+4. Convert existing memory into `candidate` records first when trust, scope, or freshness is uncertain.
+5. Record what was imported, skipped, redacted, or left in place so rollback is possible.
+6. Use `handoff` only after `doctor` reports no warnings that would mislead the next agent.
+
+Use `references/existing-agent-integration.md` for the detailed audit, migration, and rollback checklist.
 
 ## Update Discipline
 
@@ -177,5 +195,6 @@ When a side thread may be complete, use `cue` on the latest user message. Let `c
 
 - `references/memory-model.md`: schema, record fields, salience scoring, confidence, and retrieval order.
 - `references/adapters.md`: applying the universal memory kernel to Codex, AI chat, autonomous agents, and multi-agent systems.
+- `references/existing-agent-integration.md`: adding this skill to an agent that already has memory without overwriting its current system.
 - `references/topic-management.md`: interruptions, parked topics, closure cues, and resumption.
 - `references/migration-packet.md`: handoff template and model-switch checklist.

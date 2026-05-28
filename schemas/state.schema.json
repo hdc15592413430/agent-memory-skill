@@ -18,6 +18,10 @@
       "type": "integer",
       "minimum": 1
     },
+    "revision": {
+      "type": "integer",
+      "minimum": 0
+    },
     "updated_at": {
       "type": "string"
     },

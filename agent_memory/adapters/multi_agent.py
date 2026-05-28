@@ -268,7 +268,7 @@ def build_orchestration_note(base: str | Path = DEFAULT_BASE_DIR, max_chars: int
 def write_orchestration_note(base: str | Path = DEFAULT_BASE_DIR) -> Path:
     base_path = resolve_base(base)
     output_path = base_path / NOTE_FILE
-    output_path.write_text(build_orchestration_note(base_path), encoding="utf-8", newline="\n")
+    core.write_text_atomic(output_path, build_orchestration_note(base_path))
     return output_path
 
 

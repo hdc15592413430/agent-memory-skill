@@ -11,6 +11,7 @@ Memory is not complete recall. Memory is a ranked, evidence-aware operating stat
 ```json
 {
   "version": 1,
+  "revision": 0,
   "updated_at": "2026-05-28T00:00:00Z",
   "user_profile": {
     "preferences": [],
@@ -39,6 +40,8 @@ Memory is not complete recall. Memory is a ranked, evidence-aware operating stat
   }
 }
 ```
+
+`revision` is optional for older memory files. The reference filesystem writer increments it on each `state.json` write and rejects stale writes when another process has already written a newer revision.
 
 ## Record Fields
 

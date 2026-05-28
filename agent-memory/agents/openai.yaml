@@ -1,4 +1,4 @@
 interface:
   display_name: "Agent Memory"
-  short_description: "Capture, retrieve, and migrate agent working memory."
-  default_prompt: "Use $agent-memory to preserve decisions, preferences, topic threads, and migration context for this agent work."
+  short_description: "Maintain project-level agent memory for continuity and handoff."
+  default_prompt: "Use $agent-memory to preserve project decisions, durable preferences, topic threads, and handoff context when this work needs continuity."
