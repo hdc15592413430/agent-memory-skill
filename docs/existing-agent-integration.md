@@ -2,6 +2,13 @@
 
 Use Agent Memory as an additive sidecar before treating it as a replacement for an agent's current memory system.
 
+If you are unsure how strongly to attach it, run:
+
+```bash
+python -m agent_memory integration-mode --existing-memory-exists
+python -m agent_memory integration-mode --existing-memory-exists --trust-unclear
+```
+
 ## When To Use This
 
 Use this flow when an agent or workspace already has:
@@ -22,6 +29,12 @@ For a brand-new workspace, the normal `init -> brief -> handoff` path is enough.
 5. Promote only reviewed records.
 6. Run `doctor` and `handoff --strict`.
 7. Record what was imported, skipped, redacted, or left in place.
+
+Check whether the current session is too heavy before migration or reset:
+
+```bash
+python -m agent_memory session-health --messages 365 --session-bytes 1048576
+```
 
 ## Commands
 

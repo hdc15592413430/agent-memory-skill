@@ -82,6 +82,7 @@ Keep in core:
 - source/scope validation
 - expiry, supersession, and memory-safety audits
 - selection, candidate review, and compaction policies that remain runtime-agnostic
+- adaptive integration recommendations and session health assessment
 - rendering
 
 Keep out of core:

@@ -1,6 +1,6 @@
 ---
 name: agent-memory
-description: Maintain project-level AI agent memory for continuity-sensitive work: long-running tasks, context compaction, model switches, runtime handoff, existing-agent migration, topic interruptions, durable user preferences, project decisions, and reviewable memory updates. Use when the user asks to remember, resume, migrate, hand off, audit, or preserve agent context; avoid using it for short one-off tasks that do not need durable memory.
+description: Maintain adaptive project-level AI agent memory for continuity-sensitive work: long-running tasks, session health, context compaction, model switches, runtime handoff, existing-agent migration, topic interruptions, durable user preferences, project decisions, and reviewable memory updates. Use when the user asks to remember, resume, migrate, hand off, audit, preserve agent context, or decide whether to bootstrap, augment, or audit memory; avoid using it for short one-off tasks that do not need durable memory.
 ---
 
 # Agent Memory
@@ -22,11 +22,13 @@ The goal is to help a future agent quickly answer:
 ## Operating Loop
 
 1. Discover existing memory before doing continuity-sensitive work. Look for `.agent-memory/`, `memory/`, or a path named by the user.
-2. Load only relevant memory shards: current objective, user preferences, active topic, open threads, recent decisions, risks, and migration notes.
-3. Capture confirmed memory with `add` or `supersede`; capture uncertain agent guesses with `propose` so they stay out of startup context until review.
-4. For complex coding or design work, preserve the opening plan: clarified requirements, chosen approach, phases, and validation gates.
-5. Update memory at natural boundaries: task completion, topic switch, context compaction, model migration, user correction, durable preference, or important decision.
-6. Run `handoff` before a handoff, architecture change, or long pause. It refreshes the short briefing, refreshes the migration packet, and audits readiness.
+2. Choose the integration strength: `bootstrap` when no memory exists, `augment` when another memory system already exists, and `audit` when trust or consent is unclear.
+3. Load only relevant memory shards: current objective, user preferences, active topic, open threads, recent decisions, risks, and migration notes.
+4. Capture confirmed memory with `add` or `supersede`; capture uncertain agent guesses with `propose` so they stay out of startup context until review.
+5. For complex coding or design work, preserve the opening plan: clarified requirements, chosen approach, phases, and validation gates.
+6. Check session health when a conversation becomes long or slow; create a handoff before starting a fresh session.
+7. Update memory at natural boundaries: task completion, topic switch, context compaction, model migration, user correction, durable preference, or important decision.
+8. Run `handoff` before a handoff, architecture change, or long pause. It refreshes the short briefing, refreshes the migration packet, and audits readiness.
 
 ## Salience Gate
 
@@ -151,6 +153,26 @@ When adding this skill to an agent that already has memory:
 
 Use `references/existing-agent-integration.md` for the detailed audit, migration, and rollback checklist.
 
+## Adaptive Integration And Session Health
+
+Use adaptive integration like an automatic charger:
+
+- `bootstrap` / high power: no memory exists, so create `.agent-memory/` as the primary project memory layer.
+- `augment` / low power: another memory system exists, so use `.agent-memory/` as a sidecar and fill gaps.
+- `audit` / read-only: trust, privacy, freshness, or ownership is unclear, so inspect before writing durable memory.
+
+Run:
+
+```bash
+python path/to/agent-memory/scripts/memory_packet.py integration-mode --existing-memory-exists
+python path/to/agent-memory/scripts/memory_packet.py integration-mode --existing-memory-exists --trust-unclear
+python path/to/agent-memory/scripts/memory_packet.py session-health --messages 365 --session-bytes 1048576
+```
+
+When `session-health` reports `handoff-recommended` or `critical`, refresh `memory-briefing.md` and `migration-packet.md`, start a fresh session, and load the briefing instead of the full transcript.
+
+Use `references/adaptive-integration.md` for the bootstrap/augment/audit workflow and the Yanheng long-session slowdown pattern.
+
 ## Update Discipline
 
 When updating memory:
@@ -194,6 +216,7 @@ When a side thread may be complete, use `cue` on the latest user message. Let `c
 ## References
 
 - `references/memory-model.md`: schema, record fields, salience scoring, confidence, and retrieval order.
+- `references/adaptive-integration.md`: bootstrap/augment/audit modes, session health, and long-session handoff.
 - `references/adapters.md`: applying the universal memory kernel to Codex, AI chat, autonomous agents, and multi-agent systems.
 - `references/existing-agent-integration.md`: adding this skill to an agent that already has memory without overwriting its current system.
 - `references/topic-management.md`: interruptions, parked topics, closure cues, and resumption.

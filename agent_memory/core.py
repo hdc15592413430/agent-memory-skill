@@ -916,6 +916,205 @@ def compact_state_plan(
     }
 
 
+def recommend_integration_mode(
+    *,
+    agent_memory_exists: bool = False,
+    existing_memory_exists: bool = False,
+    trust_unclear: bool = False,
+    audit_only: bool = False,
+) -> dict[str, Any]:
+    """Recommend how strongly Agent Memory should attach to an agent."""
+
+    reasons: list[str] = []
+    if audit_only:
+        reasons.append("audit-only mode was requested")
+    if trust_unclear:
+        reasons.append("existing memory trust, freshness, or scope is unclear")
+    if agent_memory_exists:
+        reasons.append("an Agent Memory state already exists")
+    if existing_memory_exists:
+        reasons.append("another memory system already exists")
+
+    if audit_only or trust_unclear:
+        mode = "audit"
+        power = "5w"
+        summary = "Inspect memory and produce recommendations without durable writes."
+        next_actions = [
+            "List existing memory surfaces and trust boundaries.",
+            "Report what would be imported, skipped, redacted, or left untouched.",
+            "Use candidate records only after the user approves migration.",
+        ]
+    elif not agent_memory_exists and not existing_memory_exists:
+        mode = "bootstrap"
+        power = "120w"
+        summary = "Create Agent Memory as the primary project memory layer."
+        next_actions = [
+            "Initialize .agent-memory/.",
+            "Capture durable user preferences, project objective, decisions, and active topic.",
+            "Render a briefing and migration packet before future handoff.",
+        ]
+    else:
+        mode = "augment"
+        power = "20w"
+        summary = "Use Agent Memory as a sidecar that complements the existing memory system."
+        next_actions = [
+            "Use .agent-memory/ as a sidecar and leave existing memory plus runtime configuration untouched.",
+            "Import uncertain legacy memory as candidate records.",
+            "Use handoff, session health, export, and review flows to fill gaps.",
+        ]
+
+    if not reasons:
+        reasons.append("no existing memory was reported")
+
+    return {
+        "mode": mode,
+        "power": power,
+        "summary": summary,
+        "reasons": reasons,
+        "next_actions": next_actions,
+    }
+
+
+def render_integration_mode(report: dict[str, Any]) -> str:
+    lines = [
+        "# Adaptive Memory Integration",
+        "",
+        f"Mode: {report.get('mode', 'unknown')}",
+        f"Power: {report.get('power', 'unknown')}",
+        f"Summary: {report.get('summary', '')}",
+        "",
+        "## Reasons",
+        "",
+    ]
+    reasons = report.get("reasons", [])
+    lines.append(bullet_list(reasons if isinstance(reasons, list) else []))
+    lines.extend(["", "## Next Actions", ""])
+    next_actions = report.get("next_actions", [])
+    lines.append(bullet_list(next_actions if isinstance(next_actions, list) else []))
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def assess_session_health(
+    *,
+    message_count: int | None = None,
+    session_bytes: int | None = None,
+    context_bytes: int | None = None,
+    handoff_age_hours: float | None = None,
+    warning_messages: int = 150,
+    critical_messages: int = 300,
+    warning_session_bytes: int = 750_000,
+    critical_session_bytes: int = 1_500_000,
+    warning_context_bytes: int = 50_000,
+    critical_context_bytes: int = 150_000,
+    warning_handoff_age_hours: float = 24.0,
+) -> dict[str, Any]:
+    """Assess whether a long-running session should produce a handoff and start fresh."""
+
+    metrics = {
+        "message_count": message_count,
+        "session_bytes": session_bytes,
+        "context_bytes": context_bytes,
+        "handoff_age_hours": handoff_age_hours,
+    }
+    thresholds = {
+        "warning_messages": warning_messages,
+        "critical_messages": critical_messages,
+        "warning_session_bytes": warning_session_bytes,
+        "critical_session_bytes": critical_session_bytes,
+        "warning_context_bytes": warning_context_bytes,
+        "critical_context_bytes": critical_context_bytes,
+        "warning_handoff_age_hours": warning_handoff_age_hours,
+    }
+    issues: list[dict[str, Any]] = []
+
+    def add_issue(severity: str, metric: str, value: int | float, threshold: int | float, message: str) -> None:
+        issues.append(
+            {
+                "severity": severity,
+                "metric": metric,
+                "value": value,
+                "threshold": threshold,
+                "message": message,
+            }
+        )
+
+    if message_count is not None:
+        if message_count >= critical_messages:
+            add_issue("critical", "message_count", message_count, critical_messages, "session history is likely slowing each turn")
+        elif message_count >= warning_messages:
+            add_issue("warning", "message_count", message_count, warning_messages, "session is approaching handoff size")
+    if session_bytes is not None:
+        if session_bytes >= critical_session_bytes:
+            add_issue("critical", "session_bytes", session_bytes, critical_session_bytes, "session file is large enough to justify a fresh session")
+        elif session_bytes >= warning_session_bytes:
+            add_issue("warning", "session_bytes", session_bytes, warning_session_bytes, "session file is growing large")
+    if context_bytes is not None:
+        if context_bytes >= critical_context_bytes:
+            add_issue("critical", "context_bytes", context_bytes, critical_context_bytes, "startup context injection is too heavy")
+        elif context_bytes >= warning_context_bytes:
+            add_issue("warning", "context_bytes", context_bytes, warning_context_bytes, "startup context should be reviewed")
+    if handoff_age_hours is not None and handoff_age_hours >= warning_handoff_age_hours:
+        add_issue("warning", "handoff_age_hours", handoff_age_hours, warning_handoff_age_hours, "handoff artifacts may be stale")
+
+    if any(issue["severity"] == "critical" for issue in issues):
+        status = "critical"
+    elif issues:
+        status = "handoff-recommended"
+    else:
+        status = "ok"
+
+    recommendations = ["Continue with current session and refresh handoff after meaningful changes."]
+    if status != "ok":
+        recommendations = [
+            "Generate or refresh memory-briefing.md and migration-packet.md.",
+            "Start a fresh session using the briefing instead of the full transcript.",
+            "Keep only high-signal preferences, current objective, decisions, open threads, and next actions.",
+            "Move long audits, repository scans, and test runs into background or child-agent workflows when available.",
+        ]
+
+    return {
+        "status": status,
+        "metrics": metrics,
+        "thresholds": thresholds,
+        "issues": issues,
+        "recommendations": recommendations,
+    }
+
+
+def render_session_health(report: dict[str, Any]) -> str:
+    metrics = report.get("metrics", {})
+    lines = [
+        "# Session Health",
+        "",
+        f"Status: {report.get('status', 'unknown')}",
+        "",
+        "## Metrics",
+        "",
+    ]
+    if isinstance(metrics, dict):
+        for key in ["message_count", "session_bytes", "context_bytes", "handoff_age_hours"]:
+            value = metrics.get(key)
+            lines.append(f"- {key}: {value if value is not None else 'unknown'}")
+    else:
+        lines.append("- None")
+    lines.extend(["", "## Issues", ""])
+    issues = report.get("issues", [])
+    if isinstance(issues, list) and issues:
+        for issue in issues:
+            lines.append(
+                "- "
+                f"{issue.get('severity', 'unknown')}: {issue.get('metric', 'unknown')} "
+                f"{issue.get('value', 'unknown')} >= {issue.get('threshold', 'unknown')} "
+                f"({issue.get('message', '')})"
+            )
+    else:
+        lines.append("- None")
+    lines.extend(["", "## Recommendations", ""])
+    recommendations = report.get("recommendations", [])
+    lines.append(bullet_list(recommendations if isinstance(recommendations, list) else []))
+    return "\n".join(lines).rstrip() + "\n"
+
+
 def apply_compaction_plan(state: dict[str, Any], plan: dict[str, Any]) -> dict[str, Any]:
     """Apply safe compaction suggestions. Review-only suggestions are never applied."""
 

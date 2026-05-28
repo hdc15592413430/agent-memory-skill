@@ -21,6 +21,8 @@ Goals:
 - Provide reviewable compaction planning that can mark low-signal or expired records stale without deleting audit history.
 - Provide sidecar integration guidance for existing agents so current memory is not overwritten by default.
 - Provide local atomic writes and revision checks for the reference filesystem backend.
+- Provide adaptive integration modes for bootstrap, augment, and audit workflows.
+- Provide session health checks for long-session slowdown and fresh-session handoff.
 - Provide release validation, behavior scenario evaluation, security guidance, and public contribution templates.
 
 ## V0.2: Adapter Hardening
@@ -32,6 +34,7 @@ Goals:
 - Add explicit consent hooks for durable writes in chat and user-profile memory flows.
 - Add conflict examples for concurrent multi-agent writes.
 - Expand conflict handling beyond stale-write detection into adapter-specific merge or review workflows.
+- Expand session health from manual metrics into adapter-provided measurements where runtimes expose message counts, transcript size, or queued task state.
 - Harden import/export helpers for moving memory between compatible runtimes, including adapter-specific consent and storage policies.
 
 ## V0.3: Retrieval And Compaction

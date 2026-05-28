@@ -22,6 +22,8 @@ Every adapter must be able to:
 - forget revoked records and refresh generated artifacts
 - export and import portable bundles for runtime migration when the adapter supports filesystem or equivalent artifact storage
 - preserve local write safety: do not overwrite existing agent memory by default, use candidate imports for uncertain legacy memory, and keep rollback notes for integration changes
+- expose adaptive integration guidance so runtimes can bootstrap, augment, or audit memory instead of assuming one install strength
+- expose session health or equivalent signals when runtimes can report message count, transcript size, context size, or stale handoff age
 
 Adapters may add runtime-specific notes, UI, storage, or prompts, but they should not redefine the core memory model.
 
@@ -66,6 +68,24 @@ When adding Agent Memory to an existing agent, adapters should start in sidecar 
 - import uncertain legacy memory as `candidate`
 - record what was imported, skipped, redacted, promoted, or left in place
 - provide a rollback path that does not delete the user's original memory files
+
+Adapters should recommend:
+
+- `bootstrap` when no durable memory system exists
+- `augment` when an existing memory system should be complemented
+- `audit` when trust, freshness, privacy, or consent is unclear
+
+## Session Health
+
+Adapters should surface session pressure when possible:
+
+- message count
+- transcript or session file size
+- injected context size
+- age of the last handoff artifacts
+- whether a long-running task is blocking the main conversation
+
+When pressure is high, refresh handoff artifacts and start a fresh session from the briefing instead of carrying the full transcript forward.
 
 ## Privacy And Consent
 

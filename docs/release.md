@@ -27,6 +27,9 @@ Use this before publishing the project on GitHub or tagging a release.
   - `python -m agent_memory supersede --help`
 - Confirm compaction planning works:
   - `python -m agent_memory compact --path examples/codex-memory`
+- Confirm adaptive integration and session health help are available:
+  - `python -m agent_memory integration-mode --help`
+  - `python -m agent_memory session-health --help`
 - Confirm example handoffs are ready:
   - `python -m agent_memory.adapters.codex handoff --workspace examples/codex-memory --json`
   - `python -m agent_memory.adapters.chat handoff --path examples/chat-memory-demo --json`
@@ -57,6 +60,8 @@ A release is ready when a fresh clone can:
 - export and import a portable memory bundle
 - supersede outdated memory without conflicting active records
 - produce a reviewable compaction plan
+- recommend bootstrap, augment, or audit integration mode
+- assess long-session health and recommend handoff before fresh-session migration
 - initialize memory
 - capture a topic interruption
 - render a short briefing and full migration packet

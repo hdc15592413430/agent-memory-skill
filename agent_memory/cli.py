@@ -37,9 +37,13 @@ from .core import (
     redact_record,
     render_briefing,
     render_compaction_plan,
+    render_integration_mode,
     render_packet,
     render_selected_records,
+    render_session_health,
+    recommend_integration_mode,
     resume_thread,
+    assess_session_health,
     serialize_handoff_report,
     set_active_thread,
     select_memory_records,
@@ -232,6 +236,41 @@ def command_doctor(args: argparse.Namespace) -> int:
         return 0
     print_issues(issues)
     return handoff_exit_code(issues, strict=args.strict)
+
+
+def command_integration_mode(args: argparse.Namespace) -> int:
+    report = recommend_integration_mode(
+        agent_memory_exists=args.agent_memory_exists,
+        existing_memory_exists=args.existing_memory_exists,
+        trust_unclear=args.trust_unclear,
+        audit_only=args.audit_only,
+    )
+    if args.json:
+        print(json.dumps(report, ensure_ascii=False, indent=2))
+    else:
+        print(render_integration_mode(report))
+    return 0
+
+
+def command_session_health(args: argparse.Namespace) -> int:
+    report = assess_session_health(
+        message_count=args.messages,
+        session_bytes=args.session_bytes,
+        context_bytes=args.context_bytes,
+        handoff_age_hours=args.handoff_age_hours,
+        warning_messages=args.warning_messages,
+        critical_messages=args.critical_messages,
+        warning_session_bytes=args.warning_session_bytes,
+        critical_session_bytes=args.critical_session_bytes,
+        warning_context_bytes=args.warning_context_bytes,
+        critical_context_bytes=args.critical_context_bytes,
+        warning_handoff_age_hours=args.warning_handoff_age_hours,
+    )
+    if args.json:
+        print(json.dumps(report, ensure_ascii=False, indent=2))
+    else:
+        print(render_session_health(report))
+    return 0 if report["status"] == "ok" or not args.strict else 1
 
 
 def command_export(args: argparse.Namespace) -> int:
@@ -765,6 +804,30 @@ def build_parser() -> argparse.ArgumentParser:
     doctor_parser.add_argument("--path", default=".agent-memory", help="memory directory path")
     doctor_parser.add_argument("--strict", action="store_true", help="exit non-zero on warnings")
     doctor_parser.set_defaults(func=command_doctor)
+
+    mode_parser = subparsers.add_parser("integration-mode", help="recommend bootstrap, augment, or audit memory integration")
+    mode_parser.add_argument("--agent-memory-exists", action="store_true", help="an Agent Memory state already exists")
+    mode_parser.add_argument("--existing-memory-exists", action="store_true", help="another memory system already exists")
+    mode_parser.add_argument("--trust-unclear", action="store_true", help="existing memory trust, scope, or freshness is unclear")
+    mode_parser.add_argument("--audit-only", action="store_true", help="do not recommend durable writes")
+    mode_parser.add_argument("--json", action="store_true", help="print machine-readable JSON")
+    mode_parser.set_defaults(func=command_integration_mode)
+
+    health_parser = subparsers.add_parser("session-health", help="assess session size and handoff pressure")
+    health_parser.add_argument("--messages", type=int, help="number of messages in the current session")
+    health_parser.add_argument("--session-bytes", type=int, help="session transcript size in bytes")
+    health_parser.add_argument("--context-bytes", type=int, help="startup or injected context size in bytes")
+    health_parser.add_argument("--handoff-age-hours", type=float, help="hours since the last handoff artifacts were refreshed")
+    health_parser.add_argument("--warning-messages", type=int, default=150)
+    health_parser.add_argument("--critical-messages", type=int, default=300)
+    health_parser.add_argument("--warning-session-bytes", type=int, default=750_000)
+    health_parser.add_argument("--critical-session-bytes", type=int, default=1_500_000)
+    health_parser.add_argument("--warning-context-bytes", type=int, default=50_000)
+    health_parser.add_argument("--critical-context-bytes", type=int, default=150_000)
+    health_parser.add_argument("--warning-handoff-age-hours", type=float, default=24.0)
+    health_parser.add_argument("--strict", action="store_true", help="exit non-zero when handoff is recommended")
+    health_parser.add_argument("--json", action="store_true", help="print machine-readable JSON")
+    health_parser.set_defaults(func=command_session_health)
 
     export_parser = subparsers.add_parser("export", help="write a portable memory bundle for migration")
     export_parser.add_argument("--path", default=".agent-memory", help="memory directory path")

@@ -7,7 +7,7 @@
 
 AI agents forget what matters.
 
-Agent Memory Skill gives agents a project-level continuity layer: curated context, user preferences, topic stack, handoff packets, candidate memory review, and model/runtime migration without transcript dumps.
+Agent Memory Skill gives agents an adaptive project-level continuity layer: curated context, user preferences, topic stack, handoff packets, candidate memory review, session health, and model/runtime migration without transcript dumps.
 
 It works as a Codex skill, a Python CLI, a JSON memory schema, and a small set of adapters for Codex-style workspaces, ordinary AI chat, autonomous agent runs, and multi-agent workflows.
 
@@ -40,6 +40,8 @@ This project treats memory as curated operating state:
 - A local CLI: `agent-memory` or `python -m agent_memory`.
 - A structured `state.json` schema for preferences, facts, decisions, threads, episodes, artifacts, and migration notes.
 - Short startup briefings plus full migration packets for model or runtime handoff.
+- Adaptive integration modes: bootstrap when no memory exists, augment when memory already exists, and audit when trust is unclear.
+- Session health checks for long-session slowdown before cutting a fresh session.
 - Candidate memory flow: `propose` first, `promote` only after review.
 - Topic stack support for side ideas, parked threads, and safe resume cues.
 - Existing-agent sidecar guidance so current memory is not overwritten by default.
@@ -58,7 +60,9 @@ python -m pip install -e .
 Recommended project path:
 
 ```bash
+python -m agent_memory integration-mode --existing-memory-exists
 python -m agent_memory init --path .agent-memory
+python -m agent_memory session-health --messages 365 --session-bytes 1048576
 python -m agent_memory brief --path .agent-memory
 python -m agent_memory propose --path .agent-memory --collection preferences --id pref-candidate --text "User may prefer short progress updates." --scope user
 python -m agent_memory select --path .agent-memory --status candidate --include-candidates
@@ -105,6 +109,17 @@ python scripts/evaluate_memory_scenarios.py --path .tmp-agent-memory-eval --forc
 ```
 
 This checks model handoff migration, portable bundle roundtrip, preference filtering, candidate review, memory update supersession, opening plan preservation, targeted memory selection, memory compaction planning, topic interruption resume, memory review, sensitive-memory redaction, user-controlled forgetting, and multi-agent separation.
+
+Check adaptive mode and session pressure:
+
+```bash
+python -m agent_memory integration-mode
+python -m agent_memory integration-mode --existing-memory-exists
+python -m agent_memory integration-mode --existing-memory-exists --trust-unclear
+python -m agent_memory session-health --messages 365 --session-bytes 1048576
+```
+
+Use this before installing into an existing assistant or before cutting a fresh session from a long-running chat.
 
 Initialize memory in a workspace:
 
@@ -302,6 +317,7 @@ examples/
 docs/
   agent-adapter.md
   adapter-contract.md
+  adaptive-integration.md
   architecture.md
   handoff.md
   memory-briefing.md
@@ -346,6 +362,8 @@ See `docs/research-pain-points.md` for the broader public pain-point scan that i
 See `ROADMAP.md` for planned adapter hardening, expanded retrieval, compaction policy work, and runtime integration work.
 
 See `docs/architecture.md` for the skill/core/adapter split.
+
+See `docs/adaptive-integration.md` for bootstrap/augment/audit modes, session health, and the Yanheng long-session slowdown case.
 
 See `docs/existing-agent-integration.md` for adding Agent Memory to an agent that already has memory without overwriting its current system.
 

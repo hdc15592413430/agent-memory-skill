@@ -29,6 +29,7 @@ REQUIRED_ROOT_FILES = (
     "pyproject.toml",
     "MANIFEST.in",
     "docs/adapter-contract.md",
+    "docs/adaptive-integration.md",
     "docs/existing-agent-integration.md",
     "docs/privacy-and-safety.md",
     "docs/opening-plans.md",
@@ -70,11 +71,14 @@ REQUIRED_README_STRINGS = (
     "SECURITY.md",
     "ROADMAP.md",
     "docs/adapter-contract.md",
+    "docs/adaptive-integration.md",
     "docs/existing-agent-integration.md",
     "docs/privacy-and-safety.md",
     "docs/opening-plans.md",
     "docs/memory-candidates.md",
     "docs/memory-updates.md",
+    "python -m agent_memory integration-mode",
+    "python -m agent_memory session-health",
     "python -m agent_memory handoff",
     "python -m agent_memory plan",
     "python -m agent_memory propose",
@@ -119,6 +123,7 @@ REQUIRED_ADAPTER_CONTRACT_STRINGS = (
     "Write Path",
     "Privacy And Consent",
     "Existing Agent Integration",
+    "Session Health",
     "Test Requirements",
     "forgetting removes",
     "export/import roundtrips",
@@ -128,10 +133,19 @@ REQUIRED_ADAPTER_CONTRACT_STRINGS = (
 )
 REQUIRED_EXISTING_AGENT_STRINGS = (
     "sidecar",
+    "integration-mode",
+    "session-health",
     "Do not overwrite",
     "candidate",
     "Rollback",
     "python -m agent_memory handoff",
+)
+REQUIRED_ADAPTIVE_INTEGRATION_STRINGS = (
+    "bootstrap",
+    "augment",
+    "audit",
+    "session-health",
+    "Yanheng",
 )
 REQUIRED_BUNDLE_STRINGS = (
     "agent-memory-bundle",
@@ -299,6 +313,11 @@ def check_project_direction_docs(failures: list[str]) -> None:
     for expected in REQUIRED_EXISTING_AGENT_STRINGS:
         if expected not in existing_agent_text:
             fail(f"docs/existing-agent-integration.md missing: {expected}", failures)
+
+    adaptive_text = (ROOT / "docs" / "adaptive-integration.md").read_text(encoding="utf-8")
+    for expected in REQUIRED_ADAPTIVE_INTEGRATION_STRINGS:
+        if expected not in adaptive_text:
+            fail(f"docs/adaptive-integration.md missing: {expected}", failures)
 
     feature_template = (ROOT / ".github" / "ISSUE_TEMPLATE" / "feature_request.md").read_text(encoding="utf-8")
     if "docs/adapter-contract.md" not in feature_template:
@@ -660,6 +679,38 @@ def check_compaction_runner(failures: list[str]) -> None:
     ok("memory compaction planning")
 
 
+def check_adaptive_integration_runner(failures: list[str]) -> None:
+    from agent_memory import core
+
+    bootstrap = core.recommend_integration_mode()
+    if bootstrap.get("mode") != "bootstrap" or bootstrap.get("power") != "120w":
+        fail("adaptive integration did not recommend bootstrap for empty memory", failures)
+        return
+    augment = core.recommend_integration_mode(existing_memory_exists=True)
+    if augment.get("mode") != "augment" or "sidecar" not in " ".join(augment.get("next_actions", [])):
+        fail("adaptive integration did not recommend sidecar augment for existing memory", failures)
+        return
+    audit = core.recommend_integration_mode(existing_memory_exists=True, trust_unclear=True)
+    if audit.get("mode") != "audit":
+        fail("adaptive integration did not recommend audit when trust is unclear", failures)
+        return
+    ok("adaptive memory integration")
+
+
+def check_session_health_runner(failures: list[str]) -> None:
+    from agent_memory import core
+
+    report = core.assess_session_health(message_count=365, session_bytes=1_048_576)
+    if report.get("status") != "critical":
+        fail("session health did not flag long-session pressure", failures)
+        return
+    rendered = core.render_session_health(report)
+    if "Start a fresh session" not in rendered:
+        fail("session health did not recommend a fresh session", failures)
+        return
+    ok("session health assessment")
+
+
 def check_evaluation_runner(failures: list[str]) -> None:
     script_path = ROOT / "scripts" / "evaluate_memory_scenarios.py"
     spec = importlib.util.spec_from_file_location("evaluate_memory_scenarios", script_path)
@@ -771,6 +822,8 @@ def main() -> int:
     check_opening_plan_runner(failures)
     check_update_runner(failures)
     check_compaction_runner(failures)
+    check_adaptive_integration_runner(failures)
+    check_session_health_runner(failures)
     check_evaluation_runner(failures)
     run_unittests(failures)
     check_examples(failures)

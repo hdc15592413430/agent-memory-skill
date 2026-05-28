@@ -300,6 +300,64 @@ class MemoryPacketTests(unittest.TestCase):
         self.assertEqual(state["threads"]["active"]["status"], "active")
         self.assertEqual(state["decisions"][0]["status"], "active")
 
+    def test_integration_mode_recommends_bootstrap_augment_or_audit(self):
+        bootstrap = core.recommend_integration_mode()
+        self.assertEqual(bootstrap["mode"], "bootstrap")
+        self.assertEqual(bootstrap["power"], "120w")
+
+        augment = core.recommend_integration_mode(existing_memory_exists=True)
+        self.assertEqual(augment["mode"], "augment")
+        self.assertEqual(augment["power"], "20w")
+        self.assertIn("sidecar", " ".join(augment["next_actions"]))
+
+        audit = core.recommend_integration_mode(existing_memory_exists=True, trust_unclear=True)
+        self.assertEqual(audit["mode"], "audit")
+        self.assertEqual(audit["power"], "5w")
+        self.assertIn("without durable writes", audit["summary"])
+        self.assertIn("Adaptive Memory Integration", core.render_integration_mode(audit))
+
+    def test_session_health_recommends_handoff_for_long_session(self):
+        report = core.assess_session_health(message_count=365, session_bytes=1_048_576)
+
+        self.assertEqual(report["status"], "critical")
+        self.assertEqual(report["issues"][0]["metric"], "message_count")
+        self.assertIn("Start a fresh session", " ".join(report["recommendations"]))
+        rendered = core.render_session_health(report)
+        self.assertIn("# Session Health", rendered)
+        self.assertIn("message_count", rendered)
+
+    def test_cli_integration_mode_and_session_health_json(self):
+        mode_result = subprocess.run(
+            [sys.executable, str(SCRIPT), "integration-mode", "--existing-memory-exists", "--json"],
+            cwd=ROOT,
+            check=False,
+            text=True,
+            capture_output=True,
+        )
+        self.assertEqual(mode_result.returncode, 0, mode_result.stderr)
+        self.assertEqual(json.loads(mode_result.stdout)["mode"], "augment")
+
+        health_result = subprocess.run(
+            [
+                sys.executable,
+                str(SCRIPT),
+                "session-health",
+                "--messages",
+                "365",
+                "--session-bytes",
+                "1048576",
+                "--json",
+            ],
+            cwd=ROOT,
+            check=False,
+            text=True,
+            capture_output=True,
+        )
+        self.assertEqual(health_result.returncode, 0, health_result.stderr)
+        health = json.loads(health_result.stdout)
+        self.assertEqual(health["status"], "critical")
+        self.assertIn("Generate or refresh", health["recommendations"][0])
+
     def test_validate_rejects_bad_record(self):
         state = core.default_state()
         state["decisions"].append({"id": "decision-001", "text": "Missing required fields."})
