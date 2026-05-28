@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.agent-memory/
+.tmp-agent-memory-demo/
+.tmp-agent-memory-eval/
+.tmp-agent-memory-import/
+.tmp-skill-install/
+agent-memory/.tmp-memory-test/
+agent-memory-export.json
+*.tmp

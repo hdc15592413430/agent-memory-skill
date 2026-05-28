@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "updated_at": "2026-05-27T16:16:46Z",
+  "user_profile": {
+    "preferences": [],
+    "working_style": [],
+    "avoid": []
+  },
+  "project": {
+    "name": "Agent Memory Skill",
+    "objective": "Demonstrate topic interruption handling for an AI agent memory skill.",
+    "facts": [],
+    "artifacts": []
+  },
+  "threads": {
+    "active": {
+      "id": "thread-main",
+      "text": "Design the model migration packet for an agent memory skill.",
+      "type": "thread",
+      "status": "active",
+      "created_at": "2026-05-27T16:16:46Z",
+      "updated_at": "2026-05-27T16:16:46Z",
+      "confidence": "high",
+      "salience": 5,
+      "evidence": "Initial product objective.",
+      "tags": []
+    },
+    "open": [],
+    "parked": [],
+    "closed_recently": [
+      {
+        "id": "thread-side-idea",
+        "text": "Explore how to capture and recall side ideas.",
+        "type": "thread",
+        "status": "closed",
+        "created_at": "2026-05-27T16:16:46Z",
+        "updated_at": "2026-05-27T16:16:46Z",
+        "confidence": "high",
+        "salience": 5,
+        "evidence": "The side idea appeared while discussing model migration.",
+        "tags": [
+          "topic-stack",
+          "side-idea"
+        ]
+      }
+    ]
+  },
+  "decisions": [],
+  "episodes": [
+    {
+      "id": "episode-side-idea",
+      "text": "User raised a side idea: small interruptions should be remembered and recalled later when relevant.",
+      "type": "episode",
+      "status": "active",
+      "created_at": "2026-05-27T16:16:46Z",
+      "updated_at": "2026-05-27T16:16:46Z",
+      "confidence": "high",
+      "salience": 5,
+      "evidence": "The side idea appeared while discussing model migration.",
+      "tags": [
+        "topic-stack",
+        "side-idea"
+      ]
+    }
+  ],
+  "migration": {
+    "summary": "The demo parks a main topic, captures a side idea as an episode, then resumes the main topic for handoff.",
+    "next_actions": [
+      "Continue designing the model migration packet."
+    ],
+    "risks": [
+      "Do not drop the side idea just because the main topic resumed."
+    ],
+    "handoff_notes": [
+      "A future agent should read the episode before deciding whether the side idea matters again."
+    ]
+  }
+}

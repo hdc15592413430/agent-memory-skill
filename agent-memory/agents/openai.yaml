@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Memory"
+  short_description: "Capture, retrieve, and migrate agent working memory."
+  default_prompt: "Use $agent-memory to preserve decisions, preferences, topic threads, and migration context for this agent work."

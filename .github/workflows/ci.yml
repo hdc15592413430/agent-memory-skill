@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Run release validation
+        run: python scripts/validate_release.py
+      - name: Check CLI
+        run: |
+          python -m agent_memory --help
+          python -m agent_memory schema
+          python -m agent_memory plan --help
+          python -m agent_memory propose --help
+          python -m agent_memory promote --help
+          python -m agent_memory supersede --help
+          python -m agent_memory compact --path examples/codex-memory
+          python -m agent_memory handoff --path examples/codex-memory --json
+          python -m agent_memory.adapters.agent --help
+          python -m agent_memory.adapters.codex --help
+          python -m agent_memory.adapters.chat --help
+          python -m agent_memory.adapters.multi_agent --help
+      - name: Check adapter handoff commands
+        run: |
+          python -m agent_memory.adapters.codex context --workspace examples/topic-interruption-demo
+          python -m agent_memory.adapters.chat handoff --path examples/chat-memory-demo --json
+          python -m agent_memory.adapters.agent handoff --path examples/agent-run-demo --json
+          python -m agent_memory.adapters.codex handoff --workspace examples/codex-memory --json
+          python -m agent_memory.adapters.multi_agent handoff --path examples/multi-agent-demo --json

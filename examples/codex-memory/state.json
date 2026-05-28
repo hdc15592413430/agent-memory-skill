@@ -1,0 +1,142 @@
+{
+  "version": 1,
+  "updated_at": "2026-05-28T00:00:00Z",
+  "user_profile": {
+    "preferences": [
+      {
+        "id": "pref-001",
+        "text": "The user wants warm, concise Chinese collaboration with concrete progress rather than abstract theory.",
+        "type": "preference",
+        "status": "active",
+        "created_at": "2026-05-28T00:00:00Z",
+        "updated_at": "2026-05-28T00:00:00Z",
+        "confidence": "medium",
+        "salience": 4,
+        "evidence": "The user is exploring product direction interactively and asked whether the idea fits the skill format.",
+        "tags": ["collaboration", "language"]
+      }
+    ],
+    "working_style": [],
+    "avoid": [
+      {
+        "id": "avoid-001",
+        "text": "Do not treat full transcripts as memory; prioritize curated operating state.",
+        "type": "preference",
+        "status": "active",
+        "created_at": "2026-05-28T00:00:00Z",
+        "updated_at": "2026-05-28T00:00:00Z",
+        "confidence": "high",
+        "salience": 5,
+        "evidence": "Core problem stated by the user: copied conversation history does not tell a new model what matters.",
+        "tags": ["memory", "migration"]
+      }
+    ]
+  },
+  "project": {
+    "name": "Agent Memory Skill",
+    "objective": "Create an open-source AI agent memory skill that preserves user preferences, project decisions, topic state, side ideas, and migration context across model or architecture changes.",
+    "facts": [
+      {
+        "id": "fact-001",
+        "text": "The first version is implemented as a Codex-compatible skill while keeping the memory protocol runtime-agnostic.",
+        "type": "project_fact",
+        "status": "active",
+        "created_at": "2026-05-28T00:00:00Z",
+        "updated_at": "2026-05-28T00:00:00Z",
+        "confidence": "high",
+        "salience": 5,
+        "evidence": "Project structure contains agent-memory/SKILL.md plus adapter references.",
+        "tags": ["architecture", "skill"]
+      }
+    ],
+    "artifacts": [
+      {
+        "id": "artifact-001",
+        "text": "agent-memory/SKILL.md defines the core operating loop, salience gate, topic stack, and migration packet workflow.",
+        "type": "artifact",
+        "status": "active",
+        "created_at": "2026-05-28T00:00:00Z",
+        "updated_at": "2026-05-28T00:00:00Z",
+        "confidence": "high",
+        "salience": 4,
+        "evidence": "Local repository file.",
+        "tags": ["skill", "docs"]
+      }
+    ]
+  },
+  "threads": {
+    "active": {
+      "id": "thread-001",
+      "text": "Prepare the agent-memory skill as a GitHub-ready open-source prototype.",
+      "type": "thread",
+      "status": "active",
+      "created_at": "2026-05-28T00:00:00Z",
+      "updated_at": "2026-05-28T00:00:00Z",
+      "confidence": "high",
+      "salience": 5,
+      "evidence": "User said they plan to publish it on GitHub later.",
+      "tags": ["github", "open-source"]
+    },
+    "open": [],
+    "parked": [
+      {
+        "id": "thread-002",
+        "text": "Clarify whether memory should be a skill, a library, or both.",
+        "type": "thread",
+        "status": "parked",
+        "created_at": "2026-05-28T00:00:00Z",
+        "updated_at": "2026-05-28T00:00:00Z",
+        "confidence": "high",
+        "salience": 4,
+        "evidence": "User asked whether this really counts as a skill.",
+        "tags": ["positioning", "product"]
+      }
+    ],
+    "closed_recently": []
+  },
+  "decisions": [
+    {
+      "id": "decision-001",
+      "text": "Use one universal memory kernel with runtime-specific adapters instead of separate agent and chat memory projects.",
+      "type": "decision",
+      "status": "active",
+      "created_at": "2026-05-28T00:00:00Z",
+      "updated_at": "2026-05-28T00:00:00Z",
+      "confidence": "high",
+      "salience": 5,
+      "evidence": "This preserves shared memory semantics while allowing Codex, chat, autonomous agent, and multi-agent integrations.",
+      "tags": ["architecture", "adapters"]
+    }
+  ],
+  "episodes": [
+    {
+      "id": "episode-001",
+      "text": "The user raised a concern that most skills do practical external tasks, while this memory skill changes agent behavior. This should be framed as a meta-skill or continuity skill.",
+      "type": "episode",
+      "status": "active",
+      "created_at": "2026-05-28T00:00:00Z",
+      "updated_at": "2026-05-28T00:00:00Z",
+      "confidence": "high",
+      "salience": 5,
+      "evidence": "User explicitly asked whether this counts as a skill format.",
+      "tags": ["skill-format", "positioning"]
+    }
+  ],
+  "migration": {
+    "summary": "Agent Memory Skill is a prototype continuity skill for AI agents. It should help future agents identify important context, preserve user preferences, manage topic interruptions, and create handoff packets for model or architecture migration.",
+    "next_actions": [
+      "Expand tests for edge cases such as stale records, superseded decisions, and conflicting topic states.",
+      "Decide the GitHub license.",
+      "Create a short demo showing a side topic being captured and the main thread resumed.",
+      "Consider extracting the script into a core package after the skill protocol stabilizes."
+    ],
+    "risks": [
+      "If memory records become too verbose, the system will recreate transcript dumping in another form.",
+      "If adapters are mixed into the core protocol too early, the project may become Codex-specific."
+    ],
+    "handoff_notes": [
+      "Keep the skill itself lean. Put GitHub-facing documentation outside the skill folder.",
+      "Treat inferred user preferences as tentative unless explicitly confirmed."
+    ]
+  }
+}

@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-memory-skill"
+version = "0.1.0"
+description = "Structured working memory for AI agents, topic interruptions, and model handoffs."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [
+  { name = "Agent Memory Skill contributors" }
+]
+keywords = ["ai", "agents", "memory", "codex", "chat", "autonomous-agents", "multi-agent", "skills"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
+
+[project.scripts]
+agent-memory = "agent_memory.cli:main"
+agent-memory-agent = "agent_memory.adapters.agent:main"
+agent-memory-codex = "agent_memory.adapters.codex:main"
+agent-memory-chat = "agent_memory.adapters.chat:main"
+agent-memory-multi = "agent_memory.adapters.multi_agent:main"
+
+[tool.setuptools]
+packages = ["agent_memory", "agent_memory.adapters"]

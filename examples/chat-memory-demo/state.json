@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "updated_at": "2026-05-27T16:26:42Z",
+  "user_profile": {
+    "preferences": [
+      {
+        "id": "pref-chat-demo-001",
+        "text": "User prefers concise Chinese progress updates while iterating on product ideas.",
+        "type": "preference",
+        "status": "active",
+        "created_at": "2026-05-27T16:26:42Z",
+        "updated_at": "2026-05-27T16:26:42Z",
+        "confidence": "high",
+        "salience": 5,
+        "evidence": "User collaborates in Chinese and asks for concrete progress.",
+        "tags": []
+      }
+    ],
+    "working_style": [],
+    "avoid": []
+  },
+  "project": {
+    "name": "Chat Memory Demo",
+    "objective": "Demonstrate user preference transfer and side topic recovery in ordinary AI chat.",
+    "facts": [],
+    "artifacts": []
+  },
+  "threads": {
+    "active": {
+      "id": "thread-chat-main",
+      "text": "Design memory behavior for ordinary AI chat.",
+      "type": "thread",
+      "status": "active",
+      "created_at": "2026-05-27T16:26:42Z",
+      "updated_at": "2026-05-27T16:26:42Z",
+      "confidence": "high",
+      "salience": 5,
+      "evidence": "Main chat objective.",
+      "tags": []
+    },
+    "open": [],
+    "parked": [],
+    "closed_recently": [
+      {
+        "id": "thread-skill-question",
+        "text": "Clarify skill versus library positioning.",
+        "type": "thread",
+        "status": "closed",
+        "created_at": "2026-05-27T16:26:42Z",
+        "updated_at": "2026-05-27T16:26:42Z",
+        "confidence": "high",
+        "salience": 5,
+        "evidence": "Side question appeared during memory product design.",
+        "tags": [
+          "positioning",
+          "side-topic"
+        ]
+      }
+    ]
+  },
+  "decisions": [],
+  "episodes": [
+    {
+      "id": "episode-skill-question",
+      "text": "User asked whether agent memory should be a skill, a library, or both.",
+      "type": "episode",
+      "status": "active",
+      "created_at": "2026-05-27T16:26:42Z",
+      "updated_at": "2026-05-27T16:26:42Z",
+      "confidence": "high",
+      "salience": 5,
+      "evidence": "Side question appeared during memory product design.",
+      "tags": [
+        "positioning",
+        "side-topic"
+      ]
+    }
+  ],
+  "migration": {
+    "summary": "The demo stores a durable user preference, tracks an active chat topic, captures a side question as an episode, then resumes the main topic.",
+    "next_actions": [
+      "Continue the main topic without asking the user to reconstruct context."
+    ],
+    "risks": [
+      "Do not turn one side question into a permanent preference without evidence."
+    ],
+    "handoff_notes": []
+  }
+}

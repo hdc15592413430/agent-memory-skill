@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "updated_at": "2026-05-27T16:33:38Z",
+  "user_profile": {
+    "preferences": [],
+    "working_style": [],
+    "avoid": []
+  },
+  "project": {
+    "name": "",
+    "objective": "Demonstrate shared and role-local memory for a multi-agent system.",
+    "facts": [],
+    "artifacts": []
+  },
+  "threads": {
+    "active": null,
+    "open": [],
+    "parked": [],
+    "closed_recently": []
+  },
+  "decisions": [
+    {
+      "id": "decision-shared-001",
+      "text": "Use shared memory for decisions and role memory for partial findings.",
+      "type": "decision",
+      "status": "active",
+      "created_at": "2026-05-27T16:33:38Z",
+      "updated_at": "2026-05-27T16:33:38Z",
+      "confidence": "high",
+      "salience": 5,
+      "evidence": "Multi-agent architecture decision.",
+      "tags": [
+        "shared",
+        "role:planner"
+      ]
+    }
+  ],
+  "episodes": [],
+  "migration": {
+    "summary": "Shared memory contains team decisions; role memory contains partial specialist findings.",
+    "next_actions": [
+      "Promote only confirmed role findings into shared memory."
+    ],
+    "risks": [
+      "Do not confuse role-local assumptions with team decisions."
+    ],
+    "handoff_notes": []
+  }
+}

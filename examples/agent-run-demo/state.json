@@ -1,0 +1,64 @@
+{
+  "version": 1,
+  "updated_at": "2026-05-27T16:29:59Z",
+  "user_profile": {
+    "preferences": [],
+    "working_style": [],
+    "avoid": []
+  },
+  "project": {
+    "name": "",
+    "objective": "Demonstrate autonomous agent checkpoint memory.",
+    "facts": [],
+    "artifacts": [
+      {
+        "id": "tool-schema-001",
+        "text": "inspect-files: Found the canonical state shape in agent_memory/core.py.",
+        "type": "artifact",
+        "status": "active",
+        "created_at": "2026-05-27T16:29:59Z",
+        "updated_at": "2026-05-27T16:29:59Z",
+        "confidence": "high",
+        "salience": 5,
+        "evidence": "Source inspection during the run.",
+        "tags": [
+          "tool-result",
+          "tool:inspect-files"
+        ]
+      },
+      {
+        "id": "failed-transcript-001",
+        "text": "Tried using the whole transcript as memory and made the handoff noisy.",
+        "type": "artifact",
+        "status": "closed",
+        "created_at": "2026-05-27T16:29:59Z",
+        "updated_at": "2026-05-27T16:29:59Z",
+        "confidence": "high",
+        "salience": 5,
+        "evidence": "Observed failure mode from agent memory design.",
+        "tags": [
+          "failed-attempt"
+        ]
+      }
+    ]
+  },
+  "threads": {
+    "active": null,
+    "open": [],
+    "parked": [],
+    "closed_recently": []
+  },
+  "decisions": [],
+  "episodes": [],
+  "migration": {
+    "summary": "The agent is testing which execution details should survive handoff.",
+    "next_actions": [
+      "Continue from the useful tool result and avoid the failed approach."
+    ],
+    "risks": [
+      "Do not save every raw tool call as durable memory.",
+      "Do not copy full transcripts into durable memory; use salience scoring."
+    ],
+    "handoff_notes": []
+  }
+}

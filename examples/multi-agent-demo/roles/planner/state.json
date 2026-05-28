@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "updated_at": "2026-05-27T16:33:38Z",
+  "user_profile": {
+    "preferences": [],
+    "working_style": [],
+    "avoid": []
+  },
+  "project": {
+    "name": "planner",
+    "objective": "Plan task sequencing and shared-memory promotion for the multi-agent memory demo.",
+    "facts": [],
+    "artifacts": []
+  },
+  "threads": {
+    "active": null,
+    "open": [],
+    "parked": [],
+    "closed_recently": []
+  },
+  "decisions": [],
+  "episodes": [],
+  "migration": {
+    "summary": "Planner role keeps orchestration assumptions local until they become shared decisions.",
+    "next_actions": [
+      "Check shared memory before promoting role-local plans."
+    ],
+    "risks": [],
+    "handoff_notes": []
+  }
+}

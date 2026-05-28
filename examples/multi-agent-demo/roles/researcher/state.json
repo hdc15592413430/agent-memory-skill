@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "updated_at": "2026-05-27T16:33:38Z",
+  "user_profile": {
+    "preferences": [],
+    "working_style": [],
+    "avoid": []
+  },
+  "project": {
+    "name": "researcher",
+    "objective": "Track role-local research findings for the multi-agent memory demo.",
+    "facts": [
+      {
+        "id": "fact-research-001",
+        "text": "Researcher found that role-local notes prevent premature consensus.",
+        "type": "project_fact",
+        "status": "active",
+        "created_at": "2026-05-27T16:33:38Z",
+        "updated_at": "2026-05-27T16:33:38Z",
+        "confidence": "high",
+        "salience": 5,
+        "evidence": "Researcher local finding.",
+        "tags": [
+          "role:researcher",
+          "fact"
+        ]
+      }
+    ],
+    "artifacts": []
+  },
+  "threads": {
+    "active": null,
+    "open": [],
+    "parked": [],
+    "closed_recently": []
+  },
+  "decisions": [],
+  "episodes": [],
+  "migration": {
+    "summary": "Researcher role stores partial findings locally until the team confirms them.",
+    "next_actions": [
+      "Share only reviewed findings with the shared memory."
+    ],
+    "risks": [],
+    "handoff_notes": []
+  }
+}
