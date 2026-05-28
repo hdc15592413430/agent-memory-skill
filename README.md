@@ -1,16 +1,25 @@
 # Agent Memory Skill
 
-Agent Memory is an open-source skill prototype for structured AI agent memory. It helps agents preserve the useful parts of long conversations and project work without copying entire transcripts into future context.
+[![CI](https://github.com/strangeman-aboy/agent-memory-skill/actions/workflows/ci.yml/badge.svg)](https://github.com/strangeman-aboy/agent-memory-skill/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
+[![Tag](https://img.shields.io/github/v/tag/strangeman-aboy/agent-memory-skill?label=tag)](https://github.com/strangeman-aboy/agent-memory-skill/tags)
 
-The first target is Codex-style workspace agents, but the memory protocol is intentionally runtime-agnostic: one core memory model, with adapters for Codex, ordinary AI chat, autonomous agents, and multi-agent systems.
+AI agents forget what matters.
+
+Agent Memory Skill gives agents a portable memory layer: curated context, user preferences, topic stack, handoff packets, candidate memory review, and model/runtime migration without transcript dumps.
+
+It works as a Codex skill, a Python CLI, a JSON memory schema, and a small set of adapters for Codex-style workspaces, ordinary AI chat, autonomous agent runs, and multi-agent workflows.
 
 ## Why This Exists
 
-Current agent memory often fails in three places:
+Current agent memory often fails in five places:
 
 - Model or architecture migration: a new model receives lots of old context but cannot tell what matters.
 - User preference transfer: a new agent does not quickly learn the user's style, priorities, and disliked behaviors.
 - Topic interruption handling: a side idea appears during an active thread, then the agent forgets to return to the main thread or fails to store the side idea for later.
+- Memory bloat: agents store raw transcripts instead of concise, reusable operating state.
+- Memory trust: external or agent-inferred notes can silently become durable guidance without review.
 
 This project treats memory as curated operating state:
 
@@ -19,68 +28,20 @@ This project treats memory as curated operating state:
 - active and parked topics
 - side episodes
 - relevant artifacts
+- candidate memories that need review
 - next actions and risks
 - migration packets for handoff
 
-## Repository Layout
+## What You Get
 
-```text
-SECURITY.md
-ROADMAP.md
-agent_memory/
-  core.py
-  cli.py
-  adapters/agent.py
-  adapters/codex.py
-  adapters/chat.py
-  adapters/multi_agent.py
-agent-memory/
-  SKILL.md
-  agents/openai.yaml
-  references/
-  scripts/memory_packet.py
-examples/
-  agent-run-demo/{state.json,memory-briefing.md,migration-packet.md,agent-run-note.md}
-  chat-memory-demo/{state.json,memory-briefing.md,migration-packet.md,chat-memory-note.md}
-  codex-memory/{state.json,memory-briefing.md,migration-packet.md}
-  multi-agent-demo/{multi-agent-note.md,shared/,roles/}
-  topic-interruption-demo/{state.json,migration-packet.md}
-docs/
-  agent-adapter.md
-  adapter-contract.md
-  architecture.md
-  handoff.md
-  memory-briefing.md
-  chat-adapter.md
-  demo-chat-memory.md
-  demo-agent-run.md
-  demo-multi-agent.md
-  codex-adapter.md
-  evaluation.md
-  json-schema.md
-  memory-candidates.md
-  memory-compaction.md
-  memory-doctor.md
-  memory-selection.md
-  memory-updates.md
-  multi-agent-adapter.md
-  opening-plans.md
-  privacy-and-safety.md
-  portable-bundles.md
-  release.md
-  demo-topic-interruption.md
-  problem-map.md
-  research-pain-points.md
-tests/
-  test_memory_packet.py
-schemas/
-  state.schema.json
-scripts/
-  demo_memory_flow.py
-  evaluate_memory_scenarios.py
-  install_skill.py
-  validate_release.py
-```
+- A bundled Codex skill in `agent-memory/`.
+- A local CLI: `agent-memory` or `python -m agent_memory`.
+- A structured `state.json` schema for preferences, facts, decisions, threads, episodes, artifacts, and migration notes.
+- Short startup briefings plus full migration packets for model or runtime handoff.
+- Candidate memory flow: `propose` first, `promote` only after review.
+- Topic stack support for side ideas, parked threads, and safe resume cues.
+- Adapters for Codex, chat assistants, autonomous agent runs, and multi-agent memory.
+- Deterministic behavior scenarios and release validation for open-source iteration.
 
 ## Quick Start
 
@@ -88,6 +49,18 @@ Install locally for development:
 
 ```bash
 python -m pip install -e .
+```
+
+Run the demo:
+
+```bash
+python scripts/demo_memory_flow.py
+```
+
+Prepare a handoff from an example memory directory:
+
+```bash
+python -m agent_memory handoff --path examples/codex-memory
 ```
 
 Install the Codex skill into your local skills directory:
@@ -285,6 +258,66 @@ python -m agent_memory.adapters.multi_agent init --path .agent-memory-multi --ro
 python -m agent_memory.adapters.multi_agent shared-decision --path .agent-memory-multi --id decision-001 --text "Use shared memory only for confirmed decisions." --evidence "Team agreement." --confidence high --salience 5 --role planner
 python -m agent_memory.adapters.multi_agent note --path .agent-memory-multi
 python -m agent_memory.adapters.multi_agent handoff --path .agent-memory-multi
+```
+
+## Repository Layout
+
+```text
+SECURITY.md
+ROADMAP.md
+agent_memory/
+  core.py
+  cli.py
+  adapters/agent.py
+  adapters/codex.py
+  adapters/chat.py
+  adapters/multi_agent.py
+agent-memory/
+  SKILL.md
+  agents/openai.yaml
+  references/
+  scripts/memory_packet.py
+examples/
+  agent-run-demo/{state.json,memory-briefing.md,migration-packet.md,agent-run-note.md}
+  chat-memory-demo/{state.json,memory-briefing.md,migration-packet.md,chat-memory-note.md}
+  codex-memory/{state.json,memory-briefing.md,migration-packet.md}
+  multi-agent-demo/{multi-agent-note.md,shared/,roles/}
+  topic-interruption-demo/{state.json,migration-packet.md}
+docs/
+  agent-adapter.md
+  adapter-contract.md
+  architecture.md
+  handoff.md
+  memory-briefing.md
+  chat-adapter.md
+  demo-chat-memory.md
+  demo-agent-run.md
+  demo-multi-agent.md
+  codex-adapter.md
+  evaluation.md
+  json-schema.md
+  memory-candidates.md
+  memory-compaction.md
+  memory-doctor.md
+  memory-selection.md
+  memory-updates.md
+  multi-agent-adapter.md
+  opening-plans.md
+  privacy-and-safety.md
+  portable-bundles.md
+  release.md
+  demo-topic-interruption.md
+  problem-map.md
+  research-pain-points.md
+tests/
+  test_memory_packet.py
+schemas/
+  state.schema.json
+scripts/
+  demo_memory_flow.py
+  evaluate_memory_scenarios.py
+  install_skill.py
+  validate_release.py
 ```
 
 ## Problem Coverage
